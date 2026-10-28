@@ -5,14 +5,16 @@ const mineflayer = require('mineflayer');
 const HOST = 'CreateFer.aternos.me';
 const PORT = 47354;
 const VERSION = '1.21.1';
-const BOT_NAME = 'KeepAliveBot'; // ник бота (offline)
-const BOTS_COUNT = 1;           // сколько ботов (1 достаточно для Aternos)
+const BOT_NAME = 'KeepAliveBot';
+const BOTS_COUNT = 1;
 // =============================
 
 let online = 0;
 
 function createBot(index) {
   const username = BOTS_COUNT > 1 ? `${BOT_NAME}_${index}` : BOT_NAME;
+
+  console.log(`[${username}] Connecting to ${HOST}:${PORT} (${VERSION})...`);
 
   const bot = mineflayer.createBot({
     host: HOST,
@@ -30,7 +32,6 @@ function createBot(index) {
 
   bot.on('spawn', () => {
     console.log(`[${username}] SPAWN — бот в игре`);
-    // Анти-АФК: прыжок каждые 20 сек
     setInterval(() => {
       if (bot.entity) {
         bot.setControlState('jump', true);
@@ -40,7 +41,7 @@ function createBot(index) {
   });
 
   bot.on('kicked', (reason) => {
-    console.log(`[${username}] KICKED:`, reason);
+    console.log(`[${username}] KICKED:`, JSON.stringify(reason));
   });
 
   bot.on('error', (err) => {
@@ -54,15 +55,14 @@ function createBot(index) {
   });
 }
 
-// Запуск ботов
 for (let i = 0; i < BOTS_COUNT; i++) {
   setTimeout(() => createBot(i + 1), i * 3000);
 }
 
-// HTTP для Evennode (чтобы процесс не уснул)
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-  res.end(`Aternos KeepAlive\nBots online: ${online}\nServer: ${HOST}:${PORT}\n`);
+  res.end(`Aternos KeepAlive\nBots online: ${online}\nServer: ${HOST}:${PORT}\nVersion: ${VERSION}\n`);
 }).listen(process.env.PORT || 3000, () => {
-  console.log('HTTP server started');
+  console.log('HTTP server started on port', process.env.PORT || 3000);
+  console.log('Target:', HOST + ':' + PORT, VERSION);
 });
